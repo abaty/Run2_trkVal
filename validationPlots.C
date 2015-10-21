@@ -16,12 +16,15 @@ void validationPlots()
 {
   bool isMB = 1;  
 
-  int doCentCut = 1;
+  int doCentCut = 0;
   int doEtaCut = 0; 
   int doPtCut = 0;
   int doFake = 0;
   int doVtx = 0;
-  int nEvt = 4000;
+  int nEvt = 500;
+
+  bool doFineMVABins = 1;
+
   TH1::SetDefaultSumw2();
   TLatex * lat = new TLatex(0.5,0.5,"test");
 
@@ -86,6 +89,7 @@ void validationPlots()
   TH1D *chi2[6][2][2], *dxy[6][2][2], *dz[6][2][2], *nhit[6][2][2], *nlayer[6][2][2], *eta[6][2][2], *pterr[6][2][2], *mva[6][2][2], *mvaRat[6][2][1];
 
   int algos[5] = {4,5,6,7,11};
+  int nTracks[6][2][2];
 
   for(int algo = 0; algo<6; algo++)
   {
@@ -137,10 +141,11 @@ void validationPlots()
         pterr[algo][purity][sample]->GetYaxis()->SetRangeUser(0.0,0.15);
         std::cout << algo << std::endl;  
         
-        mva[algo][purity][sample] = new TH1D(Form("mva%d%d%d",algo,purity,sample),";mva;dN/d(mva)",30,-1,1);
+        mva[algo][purity][sample] = new TH1D(Form("mva%d%d%d",algo,purity,sample),";mva;dN/d(mva)",doFineMVABins?100:30,-1,1);
         mva[algo][purity][sample]->SetMarkerSize(0.8); 
         tree[sample]->Draw(Form("trkMVA>>mva%d%d%d",algo,purity,sample),Form("(1+0.2*(!(%d) && %d && trkFake))*(1+(vtxw-1)*(%d&&%d))*(1+(hiBinw-1)*(%d))*(((highPurity== 1)||(highPurity==%d))  && (trkEta>-2.4 && trkEta<2.4) && (%d==5 || %d==trkAlgo) && ((trkPt>0.5) || (!%d))&& ((trkEta>0.8 || trkEta<-0.8) || (!%d))&& ((hiBin>=100 && hiBin<200) || (!%d)))",sample,doFake,sample,doVtx,sample,purity,algo,algos[algo],doPtCut,doEtaCut,doCentCut),"",nEvt);
-        mva[algo][purity][sample]->Scale(1.0/mva[algo][purity][sample]->Integral(1,30));
+        nTracks[algo][purity][sample]=mva[algo][purity][sample]->Integral(1,doFineMVABins?100:30);
+        mva[algo][purity][sample]->Scale(1.0/mva[algo][purity][sample]->Integral(1,doFineMVABins?100:30));
         mva[algo][purity][sample]->GetYaxis()->SetRangeUser(0.0,0.4);
         std::cout << algo << std::endl;  
 
@@ -426,5 +431,20 @@ void validationPlots()
       if(i==5) lat->DrawLatex(0.03,0.4,"All Algos");
     }
     c9[j]->SaveAs(Form("validationPlots/mvaRat_%d.png",j));
+  }
+
+  //change in signal by reweighting MVAs
+  for(int i = 0; i<6; i++)
+  {
+    if(i==4) continue;
+    float cut[6] = {-0.77,0.35,0.77,-0.09,0,0};
+    float dSig = mva[i][0][1]->Integral(mva[i][0][1]->FindBin(cut[i]),mva[i][0][1]->FindBin(1)); 
+    mva[i][0][1]->Divide(mvaRat[i][0][0]);
+    float dSig2 = (float)mva[i][0][1]->Integral(mva[i][0][1]->FindBin(cut[i]),mva[i][0][1]->FindBin(1))/mva[i][0][1]->Integral(mva[i][0][1]->FindBin(-1),mva[i][0][1]->FindBin(1)); 
+    std::cout << "\n\nAlgo " << algos[i] << "\nSignal Purity before MVA weight: " << dSig << "  Signal Purity after MVA weight: " << dSig2 << "  Difference (as %): " << dSig-dSig2 << " (" << (dSig-dSig2)*100/dSig<<")" << std::endl;
+    std::cout << "Fraction of tracks w/o highPurity (data): " << (float)nTracks[i][0][1]/nTracks[5][0][1] << std::endl;
+    std::cout << "Fraction of tracks w/o highPurity (MC): " << (float)nTracks[i][0][0]/nTracks[5][0][0] << std::endl;
+    std::cout << "\nFraction of tracks w/  highPurity  (data): " << (float)nTracks[i][1][1]/nTracks[5][1][1] << std::endl;
+    std::cout << "Fraction of tracks w/  highPurity (MC): " << (float)nTracks[i][1][0]/nTracks[5][1][0] << std::endl;
   }
 }
