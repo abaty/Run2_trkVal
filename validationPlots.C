@@ -18,10 +18,11 @@ void validationPlots()
 
   int doCentCut = 0;
   int doEtaCut = 0; 
-  int doPtCut = 0;
+  int doPtCut = 1;
+  const char * ptCut = "trkPt>3 && trkPt<300";
   int doFake = 0;
   int doVtx = 0;
-  int nEvt = 500;
+  int nEvt = 5000;
 
   bool doFineMVABins = 1;
 
@@ -89,6 +90,7 @@ void validationPlots()
   TH1D *chi2[6][2][2], *dxy[6][2][2], *dz[6][2][2], *nhit[6][2][2], *nlayer[6][2][2], *eta[6][2][2], *pterr[6][2][2], *mva[6][2][2], *mvaRat[6][2][1];
 
   int algos[5] = {4,5,6,7,11};
+  const char *algName[5] = {" (Initial)"," (low pt triplet)"," (pixel pair)"," (detached)"," (jet-core)"};
   int nTracks[6][2][2];
 
   for(int algo = 0; algo<6; algo++)
@@ -99,51 +101,51 @@ void validationPlots()
       {
         chi2[algo][purity][sample] = new TH1D(Form("chi2%d%d%d",algo,purity,sample),";chi2/ndof/nlayer;dN/dchi2",100,0,1);
         chi2[algo][purity][sample]->SetMarkerSize(0.8); 
-        tree[sample]->Draw(Form("trkChi2/(1.0*trkNlayer*trkNdof)>>chi2%d%d%d",algo,purity,sample),Form("(1+(vtxw-1)*(%d&&%d))*(1+(hiBinw-1)*(%d))*(((highPurity== 1)||(highPurity==%d)) && (trkEta>-2.4 && trkEta<2.4) && (%d==5 || %d==trkAlgo) && ((trkPt>0.5) || (!%d)) && ((trkEta>0.8 || trkEta<-0.8) || (!%d))&& ((hiBin>=100 && hiBin<200) || (!%d)))",sample,doVtx,sample,purity,algo,algos[algo],doPtCut,doEtaCut,doCentCut),"",nEvt);
+        tree[sample]->Draw(Form("trkChi2/(1.0*trkNlayer*trkNdof)>>chi2%d%d%d",algo,purity,sample),Form("(1+(vtxw-1)*(%d&&%d))*(1+(hiBinw-1)*(%d))*(((highPurity== 1)||(highPurity==%d)) && (trkEta>-2.4 && trkEta<2.4) && (%d==5 || %d==trkAlgo) && ((%s) || (!%d)) && ((trkEta>0.8 || trkEta<-0.8) || (!%d))&& ((hiBin>=100 && hiBin<200) || (!%d)))",sample,doVtx,sample,purity,algo,algos[algo],ptCut,doPtCut,doEtaCut,doCentCut),"",nEvt);
         chi2[algo][purity][sample]->Scale(1.0/chi2[algo][purity][sample]->Integral(1,100));
         chi2[algo][purity][sample]->GetYaxis()->SetRangeUser(0,0.2);
         std::cout << algo << std::endl;  
     
         dxy[algo][purity][sample] = new TH1D(Form("dxy%d%d%d",algo,purity,sample),";dxy/dxyerr;dN/(dxy/dxyerr)",100,-100,100);
         dxy[algo][purity][sample]->SetMarkerSize(0.8); 
-        tree[sample]->Draw(Form("trkDxy1/(1.0*trkDxyError1)>>dxy%d%d%d",algo,purity,sample),Form("(1+(vtxw-1)*(%d&&%d))*(1+(hiBinw-1)*(%d))*(((highPurity== 1)||(highPurity==%d))  && (trkEta>-2.4 && trkEta<2.4) && (%d==5 || %d==trkAlgo) && ((trkPt>0.5) || (!%d))&& ((trkEta>0.8 || trkEta<-0.8) || (!%d))&& ((hiBin>=100 && hiBin<200) || (!%d)))",sample,doVtx,sample,purity,algo,algos[algo],doPtCut,doEtaCut,doCentCut),"",nEvt);
+        tree[sample]->Draw(Form("trkDxy1/(1.0*trkDxyError1)>>dxy%d%d%d",algo,purity,sample),Form("(1+(vtxw-1)*(%d&&%d))*(1+(hiBinw-1)*(%d))*(((highPurity== 1)||(highPurity==%d))  && (trkEta>-2.4 && trkEta<2.4) && (%d==5 || %d==trkAlgo) && ((%s) || (!%d))&& ((trkEta>0.8 || trkEta<-0.8) || (!%d))&& ((hiBin>=100 && hiBin<200) || (!%d)))",sample,doVtx,sample,purity,algo,algos[algo],ptCut,doPtCut,doEtaCut,doCentCut),"",nEvt);
         dxy[algo][purity][sample]->Scale(1.0/dxy[algo][purity][sample]->Integral(1,100));
         dxy[algo][purity][sample]->GetYaxis()->SetRangeUser(10e-7,1);
         
         dz[algo][purity][sample] = new TH1D(Form("dz%d%d%d",algo,purity,sample),";dz/dzerr;dN/(dz/dzerr)",100,-100,100);
         dz[algo][purity][sample]->SetMarkerSize(0.8);
-        tree[sample]->Draw(Form("trkDz1/(1.0*trkDzError1)>>dz%d%d%d",algo,purity,sample),Form("(1+(vtxw-1)*(%d&&%d))*(1+(hiBinw-1)*(%d))*(((highPurity== 1)||(highPurity==%d))  && (trkEta>-2.4 && trkEta<2.4) && (%d==5 || %d==trkAlgo) && ((trkPt>0.5) || (!%d))&& ((trkEta>0.8 || trkEta<-0.8) || (!%d))&& ((hiBin>=100 && hiBin<200) || (!%d)))",sample,doVtx,sample,purity,algo,algos[algo],doPtCut,doEtaCut,doCentCut),"",nEvt);
+        tree[sample]->Draw(Form("trkDz1/(1.0*trkDzError1)>>dz%d%d%d",algo,purity,sample),Form("(1+(vtxw-1)*(%d&&%d))*(1+(hiBinw-1)*(%d))*(((highPurity== 1)||(highPurity==%d))  && (trkEta>-2.4 && trkEta<2.4) && (%d==5 || %d==trkAlgo) && ((%s) || (!%d))&& ((trkEta>0.8 || trkEta<-0.8) || (!%d))&& ((hiBin>=100 && hiBin<200) || (!%d)))",sample,doVtx,sample,purity,algo,algos[algo],ptCut,doPtCut,doEtaCut,doCentCut),"",nEvt);
         dz[algo][purity][sample]->Scale(1.0/dz[algo][purity][sample]->Integral(1,100));
         dz[algo][purity][sample]->GetYaxis()->SetRangeUser(10e-7,1);
 
         nhit[algo][purity][sample] = new TH1D(Form("nhit%d%d%d",algo,purity,sample),";nhit;dN/nhit",28,3,30);
         nhit[algo][purity][sample]->SetMarkerSize(0.8); 
-        tree[sample]->Draw(Form("trkNHit>>nhit%d%d%d",algo,purity,sample),Form("(1+(vtxw-1)*(%d&&%d))*(1+(hiBinw-1)*(%d))*(((highPurity== 1)||(highPurity==%d))  && (trkEta>-2.4 && trkEta<2.4) && (%d==5 || %d==trkAlgo) && ((trkPt>0.5) || (!%d))&& ((trkEta>0.8 || trkEta<-0.8) || (!%d))&& ((hiBin>=100 && hiBin<200) || (!%d)))",sample,doVtx,sample,purity,algo,algos[algo],doPtCut,doEtaCut,doCentCut),"",nEvt);
+        tree[sample]->Draw(Form("trkNHit>>nhit%d%d%d",algo,purity,sample),Form("(1+(vtxw-1)*(%d&&%d))*(1+(hiBinw-1)*(%d))*(((highPurity== 1)||(highPurity==%d))  && (trkEta>-2.4 && trkEta<2.4) && (%d==5 || %d==trkAlgo) && ((%s) || (!%d))&& ((trkEta>0.8 || trkEta<-0.8) || (!%d))&& ((hiBin>=100 && hiBin<200) || (!%d)))",sample,doVtx,sample,purity,algo,algos[algo],ptCut,doPtCut,doEtaCut,doCentCut),"",nEvt);
         nhit[algo][purity][sample]->Scale(1.0/nhit[algo][purity][sample]->Integral(1,28));
         nhit[algo][purity][sample]->GetYaxis()->SetRangeUser(0,0.25);
         
         nlayer[algo][purity][sample] = new TH1D(Form("nlayer%d%d%d",algo,purity,sample),";nlayer;dN/nlayer",22,4,25);
         nlayer[algo][purity][sample]->SetMarkerSize(0.8); 
-        tree[sample]->Draw(Form("trkNlayer>>nlayer%d%d%d",algo,purity,sample),Form("(1+(vtxw-1)*(%d&&%d))*(1+(hiBinw-1)*(%d))*(((highPurity== 1)||(highPurity==%d))  && (trkEta>-2.4 && trkEta<2.4) && (%d==5 || %d==trkAlgo) && ((trkPt>0.5) || (!%d))&& ((trkEta>0.8 || trkEta<-0.8) || (!%d))&& ((hiBin>=100 && hiBin<200) || (!%d)))",sample,doVtx,sample,purity,algo,algos[algo],doPtCut,doEtaCut,doCentCut),"",nEvt);
+        tree[sample]->Draw(Form("trkNlayer>>nlayer%d%d%d",algo,purity,sample),Form("(1+(vtxw-1)*(%d&&%d))*(1+(hiBinw-1)*(%d))*(((highPurity== 1)||(highPurity==%d))  && (trkEta>-2.4 && trkEta<2.4) && (%d==5 || %d==trkAlgo) && ((%s) || (!%d))&& ((trkEta>0.8 || trkEta<-0.8) || (!%d))&& ((hiBin>=100 && hiBin<200) || (!%d)))",sample,doVtx,sample,purity,algo,algos[algo],ptCut,doPtCut,doEtaCut,doCentCut),"",nEvt);
         nlayer[algo][purity][sample]->Scale(1.0/nlayer[algo][purity][sample]->Integral(1,22));
         nlayer[algo][purity][sample]->GetYaxis()->SetRangeUser(0.0,0.3);
         
         eta[algo][purity][sample] = new TH1D(Form("eta%d%d%d",algo,purity,sample),";eta;dN/eta",50,-2.4,2.4);
         eta[algo][purity][sample]->SetMarkerSize(0.8); 
-        tree[sample]->Draw(Form("trkEta>>eta%d%d%d",algo,purity,sample),Form("(1+(vtxw-1)*(%d&&%d))*(1+(hiBinw-1)*(%d))*(((highPurity== 1)||(highPurity==%d))  && (trkEta>-2.4 && trkEta<2.4) && (%d==5 || %d==trkAlgo) && ((trkPt>0.5) || (!%d))&& ((trkEta>0.8 || trkEta<-0.8) || (!%d))&& ((hiBin>=100 && hiBin<200) || (!%d)))",sample,doVtx,sample,purity,algo,algos[algo],doPtCut,doEtaCut,doCentCut),"",nEvt);
+        tree[sample]->Draw(Form("trkEta>>eta%d%d%d",algo,purity,sample),Form("(1+(vtxw-1)*(%d&&%d))*(1+(hiBinw-1)*(%d))*(((highPurity== 1)||(highPurity==%d))  && (trkEta>-2.4 && trkEta<2.4) && (%d==5 || %d==trkAlgo) && ((%s) || (!%d))&& ((trkEta>0.8 || trkEta<-0.8) || (!%d))&& ((hiBin>=100 && hiBin<200) || (!%d)))",sample,doVtx,sample,purity,algo,algos[algo],ptCut,doPtCut,doEtaCut,doCentCut),"",nEvt);
         eta[algo][purity][sample]->Scale(1.0/eta[algo][purity][sample]->Integral(1,50));
         eta[algo][purity][sample]->GetYaxis()->SetRangeUser(0.0,0.03);
         
         pterr[algo][purity][sample] = new TH1D(Form("pterr%d%d%d",algo,purity,sample),";pterr;dN/(pt/pterr)",50,0,0.05);
         pterr[algo][purity][sample]->SetMarkerSize(0.8); 
-        tree[sample]->Draw(Form("trkPtError/trkPt>>pterr%d%d%d",algo,purity,sample),Form("(1+(vtxw-1)*(%d&&%d))*(1+(hiBinw-1)*(%d))*(((highPurity== 1)||(highPurity==%d))  && (trkEta>-2.4 && trkEta<2.4) && (%d==5 || %d==trkAlgo) && ((trkPt>0.5) || (!%d))&& ((trkEta>0.8 || trkEta<-0.8) || (!%d))&& ((hiBin>=100 && hiBin<200) || (!%d)))",sample,doVtx,sample,purity,algo,algos[algo],doPtCut,doEtaCut,doCentCut),"",nEvt);
+        tree[sample]->Draw(Form("trkPtError/trkPt>>pterr%d%d%d",algo,purity,sample),Form("(1+(vtxw-1)*(%d&&%d))*(1+(hiBinw-1)*(%d))*(((highPurity== 1)||(highPurity==%d))  && (trkEta>-2.4 && trkEta<2.4) && (%d==5 || %d==trkAlgo) && ((%s) || (!%d))&& ((trkEta>0.8 || trkEta<-0.8) || (!%d))&& ((hiBin>=100 && hiBin<200) || (!%d)))",sample,doVtx,sample,purity,algo,algos[algo],ptCut,doPtCut,doEtaCut,doCentCut),"",nEvt);
         pterr[algo][purity][sample]->Scale(1.0/pterr[algo][purity][sample]->Integral(1,50));
         pterr[algo][purity][sample]->GetYaxis()->SetRangeUser(0.0,0.15);
         std::cout << algo << std::endl;  
         
         mva[algo][purity][sample] = new TH1D(Form("mva%d%d%d",algo,purity,sample),";mva;dN/d(mva)",doFineMVABins?100:30,-1,1);
         mva[algo][purity][sample]->SetMarkerSize(0.8); 
-        tree[sample]->Draw(Form("trkMVA>>mva%d%d%d",algo,purity,sample),Form("(1+0.2*(!(%d) && %d && trkFake))*(1+(vtxw-1)*(%d&&%d))*(1+(hiBinw-1)*(%d))*(((highPurity== 1)||(highPurity==%d))  && (trkEta>-2.4 && trkEta<2.4) && (%d==5 || %d==trkAlgo) && ((trkPt>0.5) || (!%d))&& ((trkEta>0.8 || trkEta<-0.8) || (!%d))&& ((hiBin>=100 && hiBin<200) || (!%d)))",sample,doFake,sample,doVtx,sample,purity,algo,algos[algo],doPtCut,doEtaCut,doCentCut),"",nEvt);
+        tree[sample]->Draw(Form("trkMVA>>mva%d%d%d",algo,purity,sample),Form("(1+0.2*(!(%d) && %d && trkFake))*(1+(vtxw-1)*(%d&&%d))*(1+(hiBinw-1)*(%d))*(((highPurity== 1)||(highPurity==%d))  && (trkEta>-2.4 && trkEta<2.4) && (%d==5 || %d==trkAlgo) && ((%s) || (!%d))&& ((trkEta>0.8 || trkEta<-0.8) || (!%d))&& ((hiBin>=100 && hiBin<200) || (!%d)))",sample,doFake,sample,doVtx,sample,purity,algo,algos[algo],ptCut,doPtCut,doEtaCut,doCentCut),"",nEvt);
         nTracks[algo][purity][sample]=mva[algo][purity][sample]->Integral(1,doFineMVABins?100:30);
         mva[algo][purity][sample]->Scale(1.0/mva[algo][purity][sample]->Integral(1,doFineMVABins?100:30));
         mva[algo][purity][sample]->GetYaxis()->SetRangeUser(0.0,0.4);
@@ -185,7 +187,7 @@ void validationPlots()
         if(j==1) l1[j]->AddEntry((TObject*)0,"HighPurity","");
         l1[j]->Draw("same");
       }
-      if(i<5) lat->DrawLatex(0.5,0.04,Form("Algo %d",algos[i]));
+      if(i<5) lat->DrawLatex(0.5,0.04,Form("Algo %d%s",algos[i],algName[i]));
       if(i==5) lat->DrawLatex(0.5,0.04,"All Algos");
     } 
     c1[j]->SaveAs(Form("validationPlots/chi2_%d.png",j));
@@ -216,7 +218,7 @@ void validationPlots()
         if(j==1) l2[j]->AddEntry((TObject*)0,"HighPurity","");
         l2[j]->Draw("same");
       }
-      if(i<5) lat->DrawLatex(-80,0.1,Form("Algo %d",algos[i]));
+      if(i<5) lat->DrawLatex(-80,0.1,Form("Algo %d%s",algos[i],algName[i]));
       if(i==5) lat->DrawLatex(-80,0.1,"All Algos");
     }
     c2[j]->SaveAs(Form("validationPlots/dxy_%d.png",j));
@@ -247,7 +249,7 @@ void validationPlots()
         if(j==1) l3[j]->AddEntry((TObject*)0,"HighPurity","");
         l3[j]->Draw("same");
       }
-      if(i<5) lat->DrawLatex(-80,0.1,Form("Algo %d",algos[i]));
+      if(i<5) lat->DrawLatex(-80,0.1,Form("Algo %d%s",algos[i],algName[i]));
       if(i==5) lat->DrawLatex(-80,0.1,"All Algos");
     }
     c3[j]->SaveAs(Form("validationPlots/dz_%d.png",j));
@@ -277,7 +279,7 @@ void validationPlots()
         if(j==1) l4[j]->AddEntry((TObject*)0,"HighPurity","");
         l4[j]->Draw("same");
       }
-      if(i<5) lat->DrawLatex(5,0.15,Form("Algo %d",algos[i]));
+      if(i<5) lat->DrawLatex(5,0.15,Form("Algo %d%s",algos[i],algName[i]));
       if(i==5) lat->DrawLatex(5,0.15,"All Algos");
     }
     c4[j]->SaveAs(Form("validationPlots/nhit_%d.png",j));
@@ -307,7 +309,7 @@ void validationPlots()
         if(j==1) l5[j]->AddEntry((TObject*)0,"HighPurity","");
         l5[j]->Draw("same");
       }
-      if(i<5) lat->DrawLatex(5,0.2,Form("Algo %d",algos[i]));
+      if(i<5) lat->DrawLatex(5,0.2,Form("Algo %d%s",algos[i],algName[i]));
       if(i==5) lat->DrawLatex(5,0.2,"All Algos");
     }
     c5[j]->SaveAs(Form("validationPlots/nlayer_%d.png",j));
@@ -337,7 +339,7 @@ void validationPlots()
         if(j==1) l6[j]->AddEntry((TObject*)0,"HighPurity","");
         l6[j]->Draw("same");
       }
-      if(i<5) lat->DrawLatex(-1.5,0.005,Form("Algo %d",algos[i]));
+      if(i<5) lat->DrawLatex(-1.5,0.005,Form("Algo %d%s",algos[i],algName[i]));
       if(i==5) lat->DrawLatex(-1.5,0.005,"All Algos");
     }
     c6[j]->SaveAs(Form("validationPlots/eta_%d.png",j));
@@ -367,7 +369,7 @@ void validationPlots()
         if(j==1) l7[j]->AddEntry((TObject*)0,"HighPurity","");
         l7[j]->Draw("same");
       }
-      if(i<5) lat->DrawLatex(0.03,0.04,Form("Algo %d",algos[i]));
+      if(i<5) lat->DrawLatex(0.03,0.04,Form("Algo %d%s",algos[i],algName[i]));
       if(i==5) lat->DrawLatex(0.03,0.04,"All Algos");
     }
     c7[j]->SaveAs(Form("validationPlots/pterr_%d.png",j));
@@ -397,7 +399,7 @@ void validationPlots()
         if(j==1) l8[j]->AddEntry((TObject*)0,"HighPurity","");
         l8[j]->Draw("same");
       }
-      if(i<5) lat->DrawLatex(0.03,0.04,Form("Algo %d",algos[i]));
+      if(i<5) lat->DrawLatex(0.03,0.04,Form("Algo %d%s",algos[i],algName[i]));
       if(i==5) lat->DrawLatex(0.03,0.04,"All Algos");
     }
     c8[j]->SaveAs(Form("validationPlots/mva_%d.png",j));
@@ -427,7 +429,7 @@ void validationPlots()
         if(j==1) l9[j]->AddEntry((TObject*)0,"HighPurity","");
         l9[j]->Draw("same");
       }
-      if(i<5) lat->DrawLatex(0.03,0.4,Form("Algo %d",algos[i]));
+      if(i<5) lat->DrawLatex(0.03,0.4,Form("Algo %d%s",algos[i],algName[i]));
       if(i==5) lat->DrawLatex(0.03,0.4,"All Algos");
     }
     c9[j]->SaveAs(Form("validationPlots/mvaRat_%d.png",j));
