@@ -14,15 +14,15 @@
 
 void validationPlots()
 {
-  bool isMB = 0;  
+  bool isMB = 1;  
 
   int doCentCut = 0;
   int doEtaCut = 0; 
-  int doPtCut = 1;
+  int doPtCut = 0;
   const char * ptCut = "trkPt>30 && trkPt<300";
   int doFake = 0;
   int doVtx = 1;
-  int nEvt = 40000;
+  int nEvt = 2;
 
   bool doFineMVABins = 0;
 
@@ -31,16 +31,16 @@ void validationPlots()
 
   TFile * fMC;
   TFile * fDa;
-  if(isMB) fMC = TFile::Open("/mnt/hadoop/cms/store/user/dgulhan/hiForest_HydjetMB_2076GeV_FOREST_753p1_merged/HydjetMB_2076GeV_FOREST_753p1_v0_merged.root","read");
-  if(isMB) fDa = TFile::Open("/mnt/hadoop/cms/store/user/dgulhan/hiForest_HIMinBiasUPC_HIRun2011-v1_7_5_3_patch1/HiForest_HIMinBiasUPC_HIRun2011-v1_merged.root","read");
+  //if(isMB) fMC = TFile::Open("/mnt/hadoop/cms/store/user/dgulhan/hiForest_HydjetMB_2076GeV_FOREST_753p1_merged/HydjetMB_2076GeV_FOREST_753p1_v0_merged.root","read");
+  if(isMB) fDa = TFile::Open("HiForest.root","read");
   if(!isMB) fMC = TFile::Open("/mnt/hadoop/cms/store/user/dgulhan/mergedForest/HiForest_HydjetMB_Pyquen_DiJet_pt80to9999_2670GeV_cfi_753_patch1/HiForest_HydjetMB_Pyquen_DiJet_pt80to9999_2670GeV_cfi_753_patch1_run1_mc_v2.root","read");
   if(!isMB) fDa = TFile::Open("/mnt/hadoop/cms/store/user/dgulhan/HiForest_HIHighPt_HIRun2011-v1_RECO_753_patch1_Jet80_merged/HiForest_HIHighPt_jet80_HIRun2011-v1_merged.root","read");
 
   TTree * tree[2];
-  tree[0] = (TTree*)fMC->Get("anaTrack/trackTree");
+  tree[0] = (TTree*)fDa->Get("hltAnaTrack/trackTree");
   tree[1] = (TTree*)fDa->Get("anaTrack/trackTree");
   TTree * hiBinTree[2];
-  hiBinTree[0] = (TTree*)fMC->Get("hiEvtAnalyzer/HiTree");
+  hiBinTree[0] = (TTree*)fDa->Get("hiEvtAnalyzer/HiTree");
   hiBinTree[1] = (TTree*)fDa->Get("hiEvtAnalyzer/HiTree");
 
   TH1D * daVtx = new TH1D("daVtx",";z",30,-15,15);
@@ -49,7 +49,7 @@ void validationPlots()
   tree[0]->Draw("zVtx[0]>>mcVtx","","",100000);
   daVtx->Scale(1.0/daVtx->Integral(1,30));
   mcVtx->Scale(1.0/mcVtx->Integral(1,30));
-  mcVtx->Divide(daVtx);
+ // mcVtx->Divide(daVtx);
 
   TH1D * daHiBin = new TH1D("daHiBin",";hiBin",100,0,200);
   TH1D * mcHiBin = new TH1D("mcHiBin",";hiBin",100,0,200);
@@ -57,7 +57,7 @@ void validationPlots()
   hiBinTree[0]->Draw("hiBin>>mcHiBin","");
   daHiBin->Scale(1.0/daHiBin->Integral(1,100));
   mcHiBin->Scale(1.0/mcHiBin->Integral(1,100));
-  mcHiBin->Divide(daHiBin);
+//  mcHiBin->Divide(daHiBin);
   std::cout << "here" << std::endl;
 
 
@@ -78,6 +78,8 @@ void validationPlots()
     hiBinTree[1]->GetEntry(i);
     weight=mcVtx->GetBinContent(mcVtx->FindBin(vz[0]));
     hiBinw=mcHiBin->GetBinContent(mcHiBin->FindBin(hiBin));
+    weight=1;
+    hiBinw=1;
     w->Fill();
   }
   w->Write();
@@ -154,7 +156,7 @@ void validationPlots()
         if(sample==1)
         {
           mvaRat[algo][purity][0] = (TH1D*)mva[algo][purity][1]->Clone(Form("mvaRat%d%d0",algo,purity));
-          mvaRat[algo][purity][0]->GetYaxis()->SetTitle("data/MC");
+          mvaRat[algo][purity][0]->GetYaxis()->SetTitle("offline/online");
           mvaRat[algo][purity][0]->Divide(mva[algo][purity][0]);
           mvaRat[algo][purity][0]->GetYaxis()->SetRangeUser(0,2);
           std::cout << algo << std::endl;  
@@ -182,8 +184,8 @@ void validationPlots()
       if(i==0)
       {
         l1[j] = new TLegend(0.6,0.5,0.9,0.9);
-        l1[j]->AddEntry(chi2[0][j][0],"Monte Carlo");
-        l1[j]->AddEntry(chi2[0][j][1],"Data");
+        l1[j]->AddEntry(chi2[0][j][0],"Online");
+        l1[j]->AddEntry(chi2[0][j][1],"Offline");
         if(j==1) l1[j]->AddEntry((TObject*)0,"HighPurity","");
         l1[j]->Draw("same");
       }
@@ -213,8 +215,8 @@ void validationPlots()
       if(i==0)
       {
         l2[j] = new TLegend(0.6,0.5,0.9,0.9);
-        l2[j]->AddEntry(dxy[0][j][0],"Monte Carlo");
-        l2[j]->AddEntry(dxy[0][j][1],"Data");
+        l2[j]->AddEntry(dxy[0][j][0],"Online");
+        l2[j]->AddEntry(dxy[0][j][1],"Offline");
         if(j==1) l2[j]->AddEntry((TObject*)0,"HighPurity","");
         l2[j]->Draw("same");
       }
@@ -244,8 +246,8 @@ void validationPlots()
       if(i==0)
       {
         l3[j] = new TLegend(0.6,0.5,0.9,0.9);
-        l3[j]->AddEntry(dz[0][j][0],"Monte Carlo");
-        l3[j]->AddEntry(dz[0][j][1],"Data");
+        l3[j]->AddEntry(dz[0][j][0],"Online");
+        l3[j]->AddEntry(dz[0][j][1],"Offline");
         if(j==1) l3[j]->AddEntry((TObject*)0,"HighPurity","");
         l3[j]->Draw("same");
       }
@@ -274,8 +276,8 @@ void validationPlots()
       if(i==0)
       {
         l4[j] = new TLegend(0.6,0.5,0.9,0.9);
-        l4[j]->AddEntry(nhit[0][j][0],"Monte Carlo");
-        l4[j]->AddEntry(nhit[0][j][1],"Data");
+        l4[j]->AddEntry(nhit[0][j][0],"Online");
+        l4[j]->AddEntry(nhit[0][j][1],"Offline");
         if(j==1) l4[j]->AddEntry((TObject*)0,"HighPurity","");
         l4[j]->Draw("same");
       }
@@ -304,8 +306,8 @@ void validationPlots()
       if(i==0)
       {
         l5[j] = new TLegend(0.6,0.5,0.9,0.9);
-        l5[j]->AddEntry(nlayer[0][j][0],"Monte Carlo");
-        l5[j]->AddEntry(nlayer[0][j][1],"Data");
+        l5[j]->AddEntry(nlayer[0][j][0],"Online");
+        l5[j]->AddEntry(nlayer[0][j][1],"Offline");
         if(j==1) l5[j]->AddEntry((TObject*)0,"HighPurity","");
         l5[j]->Draw("same");
       }
@@ -334,8 +336,8 @@ void validationPlots()
       if(i==0)
       {
         l6[j] = new TLegend(0.5,0.2,0.9,0.5);
-        l6[j]->AddEntry(eta[0][j][0],"Monte Carlo");
-        l6[j]->AddEntry(eta[0][j][1],"Data");
+        l6[j]->AddEntry(eta[0][j][0],"Online");
+        l6[j]->AddEntry(eta[0][j][1],"Offline");
         if(j==1) l6[j]->AddEntry((TObject*)0,"HighPurity","");
         l6[j]->Draw("same");
       }
@@ -364,8 +366,8 @@ void validationPlots()
       if(i==0)
       {
         l7[j] = new TLegend(0.6,0.5,0.9,0.9);
-        l7[j]->AddEntry(pterr[0][j][0],"Monte Carlo");
-        l7[j]->AddEntry(pterr[0][j][1],"Data");
+        l7[j]->AddEntry(pterr[0][j][0],"Online");
+        l7[j]->AddEntry(pterr[0][j][1],"Offline");
         if(j==1) l7[j]->AddEntry((TObject*)0,"HighPurity","");
         l7[j]->Draw("same");
       }
@@ -394,8 +396,8 @@ void validationPlots()
       if(i==0)
       {
         l8[j] = new TLegend(0.6,0.5,0.9,0.9);
-        l8[j]->AddEntry(mva[0][j][0],"Monte Carlo");
-        l8[j]->AddEntry(mva[0][j][1],"Data");
+        l8[j]->AddEntry(mva[0][j][0],"Online");
+        l8[j]->AddEntry(mva[0][j][1],"Offline");
         if(j==1) l8[j]->AddEntry((TObject*)0,"HighPurity","");
         l8[j]->Draw("same");
       }
@@ -424,8 +426,8 @@ void validationPlots()
       if(i==0)
       {
         l9[j] = new TLegend(0.6,0.5,0.9,0.9);
-      //  l9[j]->AddEntry(mvaRat[0][j][0],"Monte Carlo");
-      //  l9[j]->AddEntry(mvaRat[0][j][1],"Data");
+      //  l9[j]->AddEntry(mvaRat[0][j][0],"Online");
+      //  l9[j]->AddEntry(mvaRat[0][j][1],"Offline");
         if(j==1) l9[j]->AddEntry((TObject*)0,"HighPurity","");
         l9[j]->Draw("same");
       }
